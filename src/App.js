@@ -35,6 +35,7 @@ class App extends Component {
     this.searchSport = this.searchSport.bind(this);
     this.searchPlayer = this.searchPlayer.bind(this);
     this.selectUri = this.selectUri.bind(this);
+    this.downloadImage = this.downloadImage.bind(this);
 
   }
 
@@ -43,31 +44,41 @@ class App extends Component {
   }
 
   searchSport({target}) {
+   this.setState({dataSport: null,dataPlayer: null, uriImage: null,countryCode: 0 , sportCode: 0});
    const { value } = target;
-   const country = value ? Country[value] : 0;
+   const country = value ? Country[value] : null;
    const dataSport = (country) ? Sport : null;
-   this.setState({dataSport, countryCode: country.country_code});
+   this.setState({dataSport, countryCode: country?.country_code});
   }
 
   searchPlayer({target}) {
+    this.setState({uriImage: null});
     const { value } = target;
-    const sport = value ? Sport[value] : 0;
+    const sport = value ? Sport[value] : null;
     const dataPlayer = (this.state.sportCode && sport) ? Player.filter((player) => (player.country_code === this.state.countryCode) && (player.sport_code === sport.sport_code) ) : null
-
-    this.setState({dataPlayer, sportCode: sport.sport_code});
+    this.setState({dataPlayer, sportCode: sport?.sport_code});
   }
 
   selectUri({target}) {
     const { value } = target;
-    const player = value ? Player[value] : 0;
+    const player = value ? this.state.dataPlayer[value] : 0;
     const uriImage = player ? player.url_image : null;
-
     this.setState({uriImage});
   }
 
-  downloadImage() {
+  async downloadImage() {
     if (this.state.uriImage) {
-      //logic for download
+
+      const image = await fetch(this.state.uriImage)
+      const imageBlog = await image.blob()
+      const imageURL = URL.createObjectURL(imageBlog)
+      
+      const link = document.createElement('a')
+      link.href = imageURL
+      link.download = 'image'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     }
   }
 
@@ -86,7 +97,6 @@ class App extends Component {
         <div>
           <CustomButtom onClick={this.downloadImage} text={"Descargar"}></CustomButtom>
         </div>
-      
       </div>
     );
   }
